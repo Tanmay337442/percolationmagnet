@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 p = 0.5
 size = 4
+directions = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
 
 def generatearray(x, y, z):
     return [[[0 if random.random() < p else 1 for _ in range(x)] for _ in range(y)] for _ in range(z)]
@@ -23,29 +24,28 @@ array = [
         [1, 1, 1, 1]
     ],
     [
-        [0, 1, 1, 0],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1]
-    ],
-    [
-        [1, 1, 1, 0],
-        [1, 1, 1, 1],
+        [0, 0, 0, 0],
+        [1, 0, 0, 1],
         [1, 1, 1, 1],
         [1, 1, 1, 1]
     ],
     [
         [1, 1, 1, 0],
         [1, 1, 1, 1],
-        [1, 1, 1, 1],
-        [1, 1, 1, 1]
+        [1, 0, 0, 1],
+        [1, 0, 0, 1]
+    ],
+    [
+        [1, 0, 1, 0],
+        [1, 0, 0, 1],
+        [1, 0, 0, 1],
+        [1, 0, 0, 1]
     ]
 ]
 # array = generatearray(size, size, size)
 showarray(array)
 
 def percolates(array):
-    directions = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
     queue = deque([(0, y, z) for y in range(size) for z in range(size) if not array[0][y][z]])
     visited = [[[False] * size for _ in range(size)] for _ in range(size)]
     
@@ -120,7 +120,51 @@ def percolates(array):
     
     return False
 
-print(percolates(array))
+def bfs(array, start, visited):
+    n = 0
+    queue = deque([start])
+    while queue:
+        x, y, z = queue.popleft()
+        n += 1
+        for dx, dy, dz in directions:
+            nx, ny, nz = x + dx, y + dy, z + dz
+            
+            if nx < 0:
+                nx = size - 1
+            elif nx >= size:
+                nx = 0
+
+            if ny < 0:
+                ny = size - 1
+            elif ny >= size:
+                ny = 0
+
+            if nz < 0:
+                nz = size - 1
+            elif nz >= size:
+                nz = 0
+
+            if not visited[nx][ny][nz] and not array[nx][ny][nz]:
+                visited[nx][ny][nz] = True
+                queue.append((nx, ny, nz))
+    return n
+
+def largestchunk(array):
+    visited = [[[False] * size for _ in range(size)] for _ in range(size)]
+    max = 0
+
+    for x in range(size):
+        for y in range(size):
+            for z in range(size):
+                if not visited[x][y][z] and not array[x][y][z]:
+                    visited[x][y][z] = True
+                    n = bfs(array, (x, y, z), visited)
+                    if n > max:
+                        max = n
+    
+    return max
+
+print(largestchunk(array))
 
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
