@@ -16,7 +16,8 @@ x_diagonal_directions = [(1, 1, 0),
             (-1, 1, 0),
             (-1, -1, 0),
             (-1, 0, 1),
-            (-1, 0, -1),]
+            (-1, 0, -1)
+            ]
 
 y_diagonal_directions = [(1, 1, 0),
             (-1, 1, 0),
@@ -42,7 +43,7 @@ z_diagonal_directions = [(0, 1, 1),
             (0, 1, -1),
             (0, -1, -1),
             (1, 0, -1),
-            (-1, 0, -1),
+            (-1, 0, -1)
             ]
 
 arrays = []
@@ -61,7 +62,7 @@ def generatearray(size, p):
                         array[x][y][z] = 2
                         for dx, dy, dz in directions:
                             nx, ny, nz = (x + dx) % size, (y + dy) % size, (z + dz) % size
-                            array[nx][ny][nz] = 2
+                            array[nx][ny][nz] = -1
     return array
 
 """ def showarray(array):
@@ -223,8 +224,10 @@ def calculate(size, p, trials, value):
         largestchunks.append(len(largestchunk))
 
     avglargestchunk = sum(largestchunks)/len(largestchunks)
-    sorted_chunksizes = dict(sorted(chunksizes.items()))
-    print(f"{p}, {numpercolated}, {avglargestchunk}\n")
+    # sorted_chunksizes = dict(sorted(chunksizes.items()))
+    print(f"{size}, {p}, {numpercolated/trials}, {avglargestchunk/((size ** 3)/2)}\n")
+    with open('data.txt', 'a') as file:
+        file.write(f"{size}, {p}, {numpercolated/trials}, {avglargestchunk/((size ** 3)/2)}\n")
 
     # plt.hist(largestchunks)
     # plt.xlabel('Chunk Size')
@@ -246,11 +249,11 @@ def calculate(size, p, trials, value):
     # if path:
     #     # print(path)
     #     for point in path:
-    #         ax.scatter(point[0], point[1], point[2], c='r', s=100, alpha=0.3, marker='v')
+    #         ax.scatter(point[0], point[1], point[2], c='r', s=100, alpha=0.3, marker='o')
 
     # # print(largestchunk)
     # for point in largestchunk:
-    #     ax.scatter(point[0], point[1], point[2], c='y', s=100, alpha=0.3, marker='^')
+    #     ax.scatter(point[0], point[1], point[2], c='y', s=100, alpha=0.3, marker='o')
 
     # ax.set_xlabel('X')
     # ax.set_ylabel('Y')
@@ -266,12 +269,14 @@ def calculate(size, p, trials, value):
 
 data = []
 
-for x in range(11):
-    calculate(12, x/10, 10000, 0)
-    arrays = []
-    percolated = []
-    largestchunks = []
-    chunksizes = {}
+for i in [6,8,10,12]:
+    for x in range(101):
+        calculate(i, x/100, 10000, 0)
+        arrays = []
+        percolated = []
+        largestchunks = []
+        chunksizes = {}
 
+# calculate(8, 0.3, 1, 0)
 
-# calculate(8, 0.2, 1, 0)
+# 6,8,10,12
