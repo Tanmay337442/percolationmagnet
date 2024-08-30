@@ -3,6 +3,11 @@ from collections import deque
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
+import numpy as np
+
+# largest chunk of squares
+# total energy/magnetization of squares
+# Metropolis on squares
 
 # useful directions in 3D space
 directions = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
@@ -21,6 +26,7 @@ diagonal_directions = [(1, 1, 0),
 
 size = 8 # lattice size
 n = int(size ** 3 / 2) # number of spin points
+ns = n
 temp = 20 # starting point for temp - 5.0
 min_temp = 0.1 # min temp - 0.5
 step = 0.5 # size of steps for temp loop
@@ -33,7 +39,7 @@ largestchunks = []
 
 # generate 3D array representation of cube with side length and probability of square being removed
 def generatearray(size, p):
-    global n
+    global n, ns
     array = [[[0] * size for _ in range(size)] for _ in range(size)] # 3D array of 0's
     # set spins
     for x in range(size):
@@ -41,6 +47,8 @@ def generatearray(size, p):
             for z in range(size):
                 if (x+y+z) % 2 != 0:
                     array[x][y][z] = random.choice([-1, 1])
+                else:
+                    array[x][y][z] = pick_vector()
     for x in range(size):
         for y in range(size):
             for z in range(size):
@@ -52,9 +60,16 @@ def generatearray(size, p):
                             if array[nx][ny][nz] != 0: # if circle exists remove and decrease # spin points
                                 n -= 1
                                 array[nx][ny][nz] = 0
-                    else:
-                        array[x][y][z] = 2 # set square
+                        array[x][y][z] = [0] * 8
+                        ns -= 1
     return array
+
+def pick_vector():
+    v = [random.uniform(-1, 1) for _ in range(8)]
+    while v == [0] * 8:
+        v = [random.uniform(-1, 1) for _ in range(8)]
+    norm = np.linalg.norm(v)
+    return v/norm
 
 # choose random point within the given chunk
 def get_random_point(chunk):
