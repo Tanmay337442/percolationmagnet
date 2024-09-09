@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
 import numpy as np
+import cProfile
+import pstats
+import io
 
 # largest chunk of squares
 # total energy/magnetization of squares
@@ -24,11 +27,10 @@ diagonal_directions = [(1, 1, 0),
             (-1, 0, 1),
             (-1, 0, -1)]
 
-size = 8 # lattice size
-n = int(size ** 3 / 2) # number of spin points
-ns = n
-temp = 20 # starting point for temp - 5.0
-min_temp = 0.1 # min temp - 0.5
+size = 6 # lattice size
+# ns = n
+temp = 15 # starting point for temp - 5.0
+min_temp = 14 # min temp - 0.5
 step = 0.5 # size of steps for temp loop
 mcs = 100000 # number of Monte Carlo steps
 transient = 10000 # number of transient steps
@@ -39,37 +41,30 @@ largestchunks = []
 
 # generate 3D array representation of cube with side length and probability of square being removed
 def generatearray(size, p):
-    global n, ns
-    array = [[[0] * size for _ in range(size)] for _ in range(size)] # 3D array of 0's
+    global n
+    array = [[[1] * size for _ in range(size)] for _ in range(size)] # 3D array of 1's
     # set spins
     for x in range(size):
         for y in range(size):
             for z in range(size):
                 if (x+y+z) % 2 != 0:
-                    array[x][y][z] = random.choice([-1, 1])
-                else:
-                    array[x][y][z] = pick_vector()
-    for x in range(size):
-        for y in range(size):
-            for z in range(size):
-                if (x+y+z) % 2 == 0:
-                    if random.random() < p: # randomly remove square with probability
+                    array[x][y][z] *= random.choice([-1, 1]) # multiplying with 0 does nothing
+                elif random.random() < p: # randomly remove square with probability
+                        array[x][y][z] = 0
                         # check adjacent circles with wrapping
                         for dx, dy, dz in directions:
                             nx, ny, nz = (x + dx) % size, (y + dy) % size, (z + dz) % size
-                            if array[nx][ny][nz] != 0: # if circle exists remove and decrease # spin points
-                                n -= 1
-                                array[nx][ny][nz] = 0
-                        array[x][y][z] = [0] * 8
-                        ns -= 1
+                            array[nx][ny][nz] = 0
+                else:
+                    array[x][y][z] = 2
     return array
 
-def pick_vector():
-    v = [random.uniform(-1, 1) for _ in range(8)]
-    while v == [0] * 8:
-        v = [random.uniform(-1, 1) for _ in range(8)]
-    norm = np.linalg.norm(v)
-    return v/norm
+# def pick_vector():
+#     v = [random.uniform(-1, 1) for _ in range(8)]
+#     while v == [0] * 8:
+#         v = [random.uniform(-1, 1) for _ in range(8)]
+#     norm = np.linalg.norm(v)
+#     return v/norm
 
 # choose random point within the given chunk
 def get_random_point(chunk):
@@ -97,7 +92,7 @@ def flip(point, array):
     return de, False # do not flip
 
 # ignore transient results
-def transient_results(array, chunk):
+def transient_results(array, chunk, n):
     for _ in range(n * transient):
         flip(get_random_point(chunk), array)
 
@@ -116,7 +111,7 @@ def total_energy(array, chunk):
         energy += get_energy(point, array) # sum energy of each point in chunk
     return energy/2 # bonds double counted
 
-def bfs(array, start, visited, size, value):
+def bfs(array, start, visited, size):
     path = [] # list of coordinates that makes up a chunk
     queue = deque([start]) # queue of remaining points in chunk
     # while points in the chunk remain
@@ -137,35 +132,37 @@ def bfs(array, start, visited, size, value):
                 (0, -1, -1)]
         for dx, dy, dz in diagonal_directions: # check diagonally adjacent points with wrapping
             nx, ny, nz = (x + dx) % size, (y + dy) % size, (z + dz) % size
-            # check if point matches value being searched for (circle/square) and is not yet visited
-            if abs(array[nx][ny][nz]) == abs(value) and not visited[nx][ny][nz]:
+            # check if spin point exists and is unvisited
+            if abs(array[x][y][z]) == 1 and not visited[nx][ny][nz]:
                 visited[nx][ny][nz] = True # set point to visited
                 queue.append((nx, ny, nz)) # add point to queue
     return path
 
 # find largest chunk in array
-def find_largest_chunk(array, size, value):
+def find_largest_chunk(array, size):
     visited = [[[False] * size for _ in range(size)] for _ in range(size)] # array of visited points
     max_path = [] # coordinates of all points in largest chunk
     for x in range(size):
         for y in range(size):
             for z in range(size):
                 # if point unvisited and matches value being searched for (circle/square)
-                if not visited[x][y][z] and abs(array[x][y][z]) == abs(value):
+                if not visited[x][y][z] and abs(array[x][y][z]) == 1:
                     visited[x][y][z] = True # set to visited
-                    path = bfs(array, (x, y, z), visited, size, value) # get all points in chunk
+                    path = bfs(array, (x, y, z), visited, size) # get all points in chunk
                     # set chunk to new max if chunk is larger than the current max
                     if len(path) > len(max_path):
                         max_path = path
     print(f"Largest chunk size: {len(max_path)}")
     return max_path
 
-def main():
+def main(p):
     global temp
+    temp = 15
     # generate 3D array
-    array = generatearray(size, 0.05)
+    array = generatearray(size, p)
     # find largest chunk in array
-    chunk = find_largest_chunk(array, size, 1)
+    chunk = find_largest_chunk(array, size)
+    n = len(chunk)
     # temperature loop
     temp_arr = []
     x_arr = []
@@ -174,9 +171,10 @@ def main():
     u_l_arr = []
     while temp >= min_temp:
         # ignore transient results
-        transient_results(array, chunk)
+        transient_results(array, chunk, n)
         # calculate total magnetization of chunk
         m = total_magnetization(array, chunk)
+        print(m)
         # calculate total energy of chunk
         e = total_energy(array, chunk)
         # set variables to 0
@@ -205,6 +203,8 @@ def main():
         mabs_avg = mabstot * norm
         m4_avg = mtot4 * norm
 
+        print(mtot4)
+
         # X = (m2_avg-(m_avg ** 2))/(temp * n)
         X = (m2_avg-(mabs_avg ** 2))/(temp * n)
         C = (e2_avg - (e_avg ** 2))/((temp ** 2) * n)
@@ -224,44 +224,27 @@ def main():
         c_arr.append(C)
         u_l_arr.append(U_L)
 
-        # with open('data.txt') as data:
-        #     data.write(temp)
-        #     data.write(X)
-        #     data.write(X_PRIME)
-        #     data.write(C)
-        #     data.write(U_L)
+        file.write(f"{size}, {len(chunk)}, {p}, {temp}, {X}, {C}, {U_L}\n")
         temp -= step
 
-    plt.plot(temp_arr, x_arr)
-    plt.show()
-    # plt.plot(temp_arr, xprime_arr)
-    # plt.show()
-    plt.plot(temp_arr, c_arr)
-    plt.show()
-    plt.plot(temp_arr, u_l_arr)
-    plt.show()
+file = open('data3.txt', 'a')
 
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-
-    for x in range(size):
-        for y in range(size):
-            for z in range(size):
-                if array[x][y][z] == 1:
-                    ax.scatter(x, y, z, c='b', marker='^')
-                elif array[x][y][z] == -1:
-                    ax.scatter(x, y, z, c='b', marker='v')
-                elif array[x][y][z] == 2:
-                    ax.scatter(x, y, z, c='g', marker=',')
-
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
-    ax.axes.set_xlim3d(left=0, right=size-1) 
-    ax.axes.set_ylim3d(bottom=0, top=size-1) 
-    ax.axes.set_zlim3d(bottom=0, top=size-1) 
-    ax.set_title('3D Grid Visualization')
-
-    plt.show()
-
-main()
+if __name__ == '__main__':
+    # Create a profiler object
+    profiler = cProfile.Profile()
+    # Start profiling
+    profiler.enable()
+    # Run the main function
+    main(0)
+    # Stop profiling
+    profiler.disable()
+    
+    # Create a stream to hold the profiling stats
+    stream = io.StringIO()
+    # Create a Stats object
+    stats = pstats.Stats(profiler, stream=stream).sort_stats(pstats.SortKey.TIME)
+    # Print the profiling results
+    stats.print_stats()
+    
+    # Print the results to the console
+    print(stream.getvalue())
