@@ -185,6 +185,5 @@ def main(size, p):
 file = open('mcdata4.txt', 'a')
 
 size = 8
-for p in range(0, 31):
-    for _ in range(5):
-        main(size, p/100)
+for p in [12, 16, 20, 24, 28]:
+    main(size, p/100)

@@ -188,6 +188,5 @@ size = 8
 
 ######### 11hrs
 # 7 seconds - 5hrs
-for p in range(0, 31):
-    for _ in range(5):
-        main(size, p/100)
+for p in [10, 14, 18, 22, 26, 30]:
+    main(size, p/100)

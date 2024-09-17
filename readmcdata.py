@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-data = np.loadtxt('sorted.txt', delimiter=',', skiprows=0)
+data = np.loadtxt('sorted82.txt', delimiter=',', skiprows=0)
 
 size = data[:, 0]
 chunk_size = data[:, 1]

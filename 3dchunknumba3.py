@@ -187,6 +187,5 @@ file = open('mcdata3.txt', 'a')
 size = 8
 
 ######## 11.5hrs
-for p in range(0, 31):
-    for _ in range(5):
-        main(size, p/100)
+for p in [11, 15, 19, 23, 27]:
+    main(size, p/100)

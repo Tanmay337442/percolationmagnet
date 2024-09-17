@@ -188,6 +188,13 @@ size = 8
 
 # NOTE ACCIDENTALLY DID DOUBLE FOR P=3
 # 4 seconds - 1 hr
-for p in range(0, 31):
-    for _ in range(5):
-        main(size, p/100)
+
+for p in [9, 13, 17, 21, 25, 29]:
+    main(size, p/100)
+
+# GUIDANCE GO TOMORROW UHOH
+# GUIDANCE GO TOMORROW UHOH
+# GUIDANCE GO TOMORROW UHOH
+# GUIDANCE GO TOMORROW UHOH
+# GUIDANCE GO TOMORROW UHOH
+# GUIDANCE GO TOMORROW UHOH
