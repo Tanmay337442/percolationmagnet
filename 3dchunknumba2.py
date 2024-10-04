@@ -148,10 +148,11 @@ def main(size, p):
         # set variables to 0
         etot = etot2 = mtot = mtot2 = mabstot = mtot4 = 0
         # Monte Carlo loop
-        for _ in range(mcs):
+        indices = np.random.randint(0, len(chunk), mcs*n)
+        for i in range(mcs):
             # Metropolis loop
-            for _ in range(n):
-                x, y, z = random.choice(chunk) # pick random point in chunk
+            for j in range(n):
+                x, y, z = chunk[indices[i * n + j]] # pick random point in chunk
                 de, flipped = flip((x, y, z), array, temp) # flip spin if valid
                 if flipped: # if spin was flipped
                     e += de
@@ -184,9 +185,10 @@ def main(size, p):
         
 file = open('mcdata2.txt', 'a')
 
-size = 8
-
-######### 11hrs
-# 7 seconds - 5hrs
-for p in [10, 14, 18, 22, 26, 30]:
-    main(size, p/100)
+size = 12
+p = 21
+for _ in range(1):
+        main(size, p/100)
+for p in range(22, 31):
+    for _ in range(5):
+        main(size, p/100)

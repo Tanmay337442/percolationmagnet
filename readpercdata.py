@@ -15,7 +15,8 @@ for s in sizes:
     plt.plot(np.flip(p[mask]), numpercolated[mask])
 
 plt.xlabel('P')
-plt.xticks(np.arange(0, 1.1, 0.1))
+plt.xticks(np.arange(0.4, 1.1, 0.1))
+plt.xlim(.4, 1.0)
 plt.ylabel('Number Percolated')
 plt.title(f'P vs. Average Number Percolated')
 plt.savefig("percolation.png")
@@ -26,7 +27,8 @@ for s in sizes:
     plt.plot(np.flip(p[mask]), avglargestchunk[mask])
 
 plt.xlabel('P')
-plt.xticks(np.arange(0, 1.1, 0.1))
+plt.xticks(np.arange(.4, 1.1, 0.1))
+plt.xlim(.4, 1.0)
 plt.ylabel('Average Largest Cluster')
 plt.title(f'P vs. Average Largest Cluster')
 plt.savefig("cluster.png")
