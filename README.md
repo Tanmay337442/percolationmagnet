@@ -4,6 +4,7 @@ This repository contains code written for the paper titled "Correlated percolati
 
 ### 3D visualization of fcc lattice percolation:
 ![fccvisualization](https://github.com/Tanmay337442/percolationmagnet/blob/main/fccvisualization.png?raw=true)
+
 Legend:
 - Red circles in the graph show the percolating path of osmium (VI) ions
 - Blue dots are osmium (VI) ions that are not part of the path
@@ -12,4 +13,5 @@ Legend:
 
 ### Comparison of doping probability to probability of percolation at various lattice sizes:
 ![percolation](https://github.com/Tanmay337442/percolationmagnet/blob/main/percolation.png?raw=true)
+
 The percolation threshold is found at the intersection of these graphs.
